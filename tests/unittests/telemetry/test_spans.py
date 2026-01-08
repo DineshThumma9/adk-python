@@ -484,20 +484,31 @@ async def test_call_llm_disabling_request_response_content(
   # Act
   trace_call_llm(invocation_context, 'test_event_id', llm_request, llm_response)
 
-  # Assert
+  # Assert - Check attributes are set to JSON string '{}' not dict {}
+  llm_request_calls = [
+      call
+      for call in mock_span_fixture.set_attribute.call_args_list
+      if call.args[0] == 'gcp.vertex.agent.llm_request'
+  ]
   assert (
-      'gcp.vertex.agent.llm_request',
-      '{}',
-  ) in (
-      call_obj.args
-      for call_obj in mock_span_fixture.set_attribute.call_args_list
+      len(llm_request_calls) == 1
+  ), "Expected 'gcp.vertex.agent.llm_request' to be set exactly once"
+  assert llm_request_calls[0].args[1] == '{}', (
+      "Expected JSON string '{}' for llm_request when content capture is"
+      f' disabled, got {llm_request_calls[0].args[1]!r}'
   )
+
+  llm_response_calls = [
+      call
+      for call in mock_span_fixture.set_attribute.call_args_list
+      if call.args[0] == 'gcp.vertex.agent.llm_response'
+  ]
   assert (
-      'gcp.vertex.agent.llm_response',
-      '{}',
-  ) in (
-      call_obj.args
-      for call_obj in mock_span_fixture.set_attribute.call_args_list
+      len(llm_response_calls) == 1
+  ), "Expected 'gcp.vertex.agent.llm_response' to be set exactly once"
+  assert llm_response_calls[0].args[1] == '{}', (
+      "Expected JSON string '{}' for llm_response when content capture is"
+      f' disabled, got {llm_response_calls[0].args[1]!r}'
   )
 
 
@@ -543,20 +554,31 @@ def test_trace_tool_call_disabling_request_response_content(
       function_response_event=mock_event_fixture,
   )
 
-  # Assert
+  # Assert - Check attributes are set to JSON string '{}' not dict {}
+  tool_args_calls = [
+      call
+      for call in mock_span_fixture.set_attribute.call_args_list
+      if call.args[0] == 'gcp.vertex.agent.tool_call_args'
+  ]
   assert (
-      'gcp.vertex.agent.tool_call_args',
-      '{}',
-  ) in (
-      call_obj.args
-      for call_obj in mock_span_fixture.set_attribute.call_args_list
+      len(tool_args_calls) == 1
+  ), "Expected 'gcp.vertex.agent.tool_call_args' to be set exactly once"
+  assert tool_args_calls[0].args[1] == '{}', (
+      "Expected JSON string '{}' for tool_call_args when content capture is"
+      f' disabled, got {tool_args_calls[0].args[1]!r}'
   )
+
+  tool_response_calls = [
+      call
+      for call in mock_span_fixture.set_attribute.call_args_list
+      if call.args[0] == 'gcp.vertex.agent.tool_response'
+  ]
   assert (
-      'gcp.vertex.agent.tool_response',
-      '{}',
-  ) in (
-      call_obj.args
-      for call_obj in mock_span_fixture.set_attribute.call_args_list
+      len(tool_response_calls) == 1
+  ), "Expected 'gcp.vertex.agent.tool_response' to be set exactly once"
+  assert tool_response_calls[0].args[1] == '{}', (
+      "Expected JSON string '{}' for tool_response when content capture is"
+      f' disabled, got {tool_response_calls[0].args[1]!r}'
   )
 
 
@@ -584,13 +606,18 @@ def test_trace_merged_tool_disabling_request_response_content(
       function_response_event=mock_event_fixture,
   )
 
-  # Assert
+  # Assert - Check attribute is set to JSON string '{}' not dict {}
+  tool_response_calls = [
+      call
+      for call in mock_span_fixture.set_attribute.call_args_list
+      if call.args[0] == 'gcp.vertex.agent.tool_response'
+  ]
   assert (
-      'gcp.vertex.agent.tool_response',
-      '{}',
-  ) in (
-      call_obj.args
-      for call_obj in mock_span_fixture.set_attribute.call_args_list
+      len(tool_response_calls) == 1
+  ), "Expected 'gcp.vertex.agent.tool_response' to be set exactly once"
+  assert tool_response_calls[0].args[1] == '{}', (
+      "Expected JSON string '{}' for tool_response when content capture is"
+      f' disabled, got {tool_response_calls[0].args[1]!r}'
   )
 
 
