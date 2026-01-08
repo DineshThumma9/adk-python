@@ -93,6 +93,22 @@ async def _create_invocation_context(
   return invocation_context
 
 
+def _assert_span_attribute_set_to_empty_json(mock_span, attribute_name: str):
+  """Helper to assert span attribute is set to empty JSON string '{}'."""
+  calls = [
+      call
+      for call in mock_span.set_attribute.call_args_list
+      if call.args[0] == attribute_name
+  ]
+  assert (
+      len(calls) == 1
+  ), f"Expected '{attribute_name}' to be set exactly once"
+  assert calls[0].args[1] == '{}', (
+      f"Expected JSON string '{{}}' for {attribute_name} when content capture is"
+      f' disabled, got {calls[0].args[1]!r}'
+  )
+
+
 @pytest.mark.asyncio
 async def test_trace_agent_invocation(mock_span_fixture):
   """Test trace_agent_invocation sets span attributes correctly."""
@@ -485,30 +501,11 @@ async def test_call_llm_disabling_request_response_content(
   trace_call_llm(invocation_context, 'test_event_id', llm_request, llm_response)
 
   # Assert - Check attributes are set to JSON string '{}' not dict {}
-  llm_request_calls = [
-      call
-      for call in mock_span_fixture.set_attribute.call_args_list
-      if call.args[0] == 'gcp.vertex.agent.llm_request'
-  ]
-  assert (
-      len(llm_request_calls) == 1
-  ), "Expected 'gcp.vertex.agent.llm_request' to be set exactly once"
-  assert llm_request_calls[0].args[1] == '{}', (
-      "Expected JSON string '{}' for llm_request when content capture is"
-      f' disabled, got {llm_request_calls[0].args[1]!r}'
+  _assert_span_attribute_set_to_empty_json(
+      mock_span_fixture, 'gcp.vertex.agent.llm_request'
   )
-
-  llm_response_calls = [
-      call
-      for call in mock_span_fixture.set_attribute.call_args_list
-      if call.args[0] == 'gcp.vertex.agent.llm_response'
-  ]
-  assert (
-      len(llm_response_calls) == 1
-  ), "Expected 'gcp.vertex.agent.llm_response' to be set exactly once"
-  assert llm_response_calls[0].args[1] == '{}', (
-      "Expected JSON string '{}' for llm_response when content capture is"
-      f' disabled, got {llm_response_calls[0].args[1]!r}'
+  _assert_span_attribute_set_to_empty_json(
+      mock_span_fixture, 'gcp.vertex.agent.llm_response'
   )
 
 
@@ -555,30 +552,11 @@ def test_trace_tool_call_disabling_request_response_content(
   )
 
   # Assert - Check attributes are set to JSON string '{}' not dict {}
-  tool_args_calls = [
-      call
-      for call in mock_span_fixture.set_attribute.call_args_list
-      if call.args[0] == 'gcp.vertex.agent.tool_call_args'
-  ]
-  assert (
-      len(tool_args_calls) == 1
-  ), "Expected 'gcp.vertex.agent.tool_call_args' to be set exactly once"
-  assert tool_args_calls[0].args[1] == '{}', (
-      "Expected JSON string '{}' for tool_call_args when content capture is"
-      f' disabled, got {tool_args_calls[0].args[1]!r}'
+  _assert_span_attribute_set_to_empty_json(
+      mock_span_fixture, 'gcp.vertex.agent.tool_call_args'
   )
-
-  tool_response_calls = [
-      call
-      for call in mock_span_fixture.set_attribute.call_args_list
-      if call.args[0] == 'gcp.vertex.agent.tool_response'
-  ]
-  assert (
-      len(tool_response_calls) == 1
-  ), "Expected 'gcp.vertex.agent.tool_response' to be set exactly once"
-  assert tool_response_calls[0].args[1] == '{}', (
-      "Expected JSON string '{}' for tool_response when content capture is"
-      f' disabled, got {tool_response_calls[0].args[1]!r}'
+  _assert_span_attribute_set_to_empty_json(
+      mock_span_fixture, 'gcp.vertex.agent.tool_response'
   )
 
 
@@ -607,17 +585,8 @@ def test_trace_merged_tool_disabling_request_response_content(
   )
 
   # Assert - Check attribute is set to JSON string '{}' not dict {}
-  tool_response_calls = [
-      call
-      for call in mock_span_fixture.set_attribute.call_args_list
-      if call.args[0] == 'gcp.vertex.agent.tool_response'
-  ]
-  assert (
-      len(tool_response_calls) == 1
-  ), "Expected 'gcp.vertex.agent.tool_response' to be set exactly once"
-  assert tool_response_calls[0].args[1] == '{}', (
-      "Expected JSON string '{}' for tool_response when content capture is"
-      f' disabled, got {tool_response_calls[0].args[1]!r}'
+  _assert_span_attribute_set_to_empty_json(
+      mock_span_fixture, 'gcp.vertex.agent.tool_response'
   )
 
 
