@@ -53,7 +53,7 @@ async def test_new_db_uses_latest_schema(tmp_path):
     assert has_metadata_table
     schema_version = await conn.run_sync(
         lambda sync_conn: sync_conn.execute(
-            text('SELECT value FROM adk_internal_metadata WHERE key = :key'),
+            text('SELECT value FROM adk_internal_metadata WHERE `key` = :key'),
             {'key': _schema_check_utils.SCHEMA_VERSION_KEY},
         ).scalar_one_or_none()
     )
