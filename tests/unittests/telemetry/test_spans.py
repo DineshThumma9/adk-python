@@ -100,12 +100,10 @@ def _assert_span_attribute_set_to_empty_json(mock_span, attribute_name: str):
       for call in mock_span.set_attribute.call_args_list
       if call.args[0] == attribute_name
   ]
-  assert (
-      len(calls) == 1
-  ), f"Expected '{attribute_name}' to be set exactly once"
+  assert len(calls) == 1, f"Expected '{attribute_name}' to be set exactly once"
   assert calls[0].args[1] == '{}', (
-      f"Expected JSON string '{{}}' for {attribute_name} when content capture is"
-      f' disabled, got {calls[0].args[1]!r}'
+      f"Expected JSON string '{{}}' for {attribute_name} when content capture"
+      f' is disabled, got {calls[0].args[1]!r}'
   )
 
 
