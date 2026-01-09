@@ -33,8 +33,11 @@ def _get_schema_version_impl(inspector, connection) -> str:
   """Gets DB schema version using inspector and connection."""
   if inspector.has_table("adk_internal_metadata"):
     try:
+      key_col = inspector.dialect.identifier_preparer.quote("key")
       result = connection.execute(
-          text("SELECT value FROM adk_internal_metadata WHERE `key` = :key"),
+          text(
+              f"SELECT value FROM adk_internal_metadata WHERE {key_col} = :key"
+          ),
           {"key": SCHEMA_VERSION_KEY},
       ).fetchone()
       if result:
