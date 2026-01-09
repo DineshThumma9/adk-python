@@ -52,7 +52,9 @@ def _get_schema_version_impl(inspector, connection) -> str:
           "Failed to query schema version from adk_internal_metadata: %s.",
           e,
       )
-      raise  # Metadata table doesn't exist, check for v0 schema.
+      raise  
+  
+  # Metadata table doesn't exist, check for v0 schema.
   # V0 schema has an 'events' table with an 'actions' column.
   if inspector.has_table("events"):
     try:
