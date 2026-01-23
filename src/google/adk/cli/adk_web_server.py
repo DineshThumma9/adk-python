@@ -28,6 +28,7 @@ from typing import Callable
 from typing import List
 from typing import Literal
 from typing import Optional
+import uuid
 
 from fastapi import FastAPI
 from fastapi import HTTPException
@@ -761,7 +762,7 @@ class AdkWebServer:
     async def list_apps(
         detailed: bool = Query(
             default=False, description="Return detailed app information"
-        )
+        ),
     ) -> list[str] | ListAppsResponse:
       if detailed:
         apps_info = self.agent_loader.list_agents_detailed()
@@ -1554,16 +1555,27 @@ class AdkWebServer:
                     by_alias=True,
                 )
                 logger.debug(
-                    "Generated event in agent run streaming: %s", sse_event
+                    "Generated event in agent run streaming: %s",
+                    sse_event,
                 )
                 yield f"data: {sse_event}\n\n"
         except Exception as e:
-          logger.exception("Error in event_generator: %s", e)
-          # Yield a proper Event object for the error
+          logger.debug("Exception in agent run streaming: %s", e)
+
+          error_details = {
+              "error_type": type(e).__name__,
+              "error_message": str(e),
+              "timestamp": time.time(),
+          }
+
+          if logger.isEnabledFor(logging.DEBUG):
+            error_details["stacktrace"] = traceback.format_exc()
+
           error_event = Event(
               author="system",
               content=types.Content(
-                  role="model", parts=[types.Part(text=f"Error: {e}")]
+                  role="model",
+                  parts=[types.Part(text=json.dumps(error_details))],
               ),
           )
           yield (

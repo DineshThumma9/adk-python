@@ -90,7 +90,7 @@ def _event_2():
               types.Part(
                   text=None,
                   inline_data=types.Blob(
-                      mime_type="audio/pcm;rate=24000", data=b"\x00\xFF"
+                      mime_type="audio/pcm;rate=24000", data=b"\x00\xff"
                   ),
               )
           ],
@@ -183,7 +183,6 @@ def test_session_info():
 
 @pytest.fixture
 def mock_agent_loader():
-
   class MockAgentLoader:
 
     def __init__(self, agents_dir: str):
@@ -1052,8 +1051,7 @@ def test_save_artifact(test_app, create_test_session, mock_artifact_service):
   assert data["customMetadata"] == {}
   assert data["mimeType"] in (None, "text/plain")
   assert data["canonicalUri"].endswith(
-      f"/sessions/{info['session_id']}/artifacts/"
-      f"{payload['filename']}/versions/0"
+      f"/sessions/{info['session_id']}/artifacts/{payload['filename']}/versions/0"
   )
   assert isinstance(data["createTime"], float)
 
@@ -1409,6 +1407,81 @@ def test_builder_save_rejects_traversal(builder_test_client, tmp_path):
   assert response.json() is False
   assert not (tmp_path / "escape.yaml").exists()
   assert not (tmp_path / "app" / "tmp" / "escape.yaml").exists()
+
+
+def test_agent_run_sse_error_details(
+    test_app, create_test_session, monkeypatch
+):
+  """Test /run_sse returns structured JSON on error."""
+  info = create_test_session
+
+  async def run_async_with_error(self, **kwargs):
+    # Yield one normal event then fail
+    yield Event(
+        author="dummy agent",
+        invocation_id="test_invocation",
+        content=types.Content(
+            role="model", parts=[types.Part(text="Initial part")]
+        ),
+    )
+    raise ValueError("Simulated runner error")
+
+  monkeypatch.setattr(Runner, "run_async", run_async_with_error)
+
+  payload = {
+      "app_name": info["app_name"],
+      "user_id": info["user_id"],
+      "session_id": info["session_id"],
+      "new_message": {"role": "user", "parts": [{"text": "Trigger error"}]},
+      "streaming": True,
+  }
+
+  # 1. Test without DEBUG enabled (Secure mode)
+  with patch(
+      "google.adk.cli.adk_web_server.logger.isEnabledFor", return_value=False
+  ):
+    response = test_app.post("/run_sse", json=payload)
+    assert response.status_code == 200
+
+    events = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines()
+        if line.startswith("data: ")
+    ]
+
+    assert len(events) == 2
+    # Verify first (normal) event
+    assert events[0]["content"]["parts"][0]["text"] == "Initial part"
+
+    # Verify second (error) event
+    error_event = events[1]
+    assert error_event["author"] == "system"
+
+    # Verify the JSON structure in the content part
+    error_data = json.loads(error_event["content"]["parts"][0]["text"])
+    assert error_data["error_type"] == "ValueError"
+    assert error_data["error_message"] == "Simulated runner error"
+    assert "stacktrace" not in error_data
+    assert "timestamp" in error_data
+
+  # 2. Test with DEBUG enabled (Trace enabled)
+  with patch(
+      "google.adk.cli.adk_web_server.logger.isEnabledFor", return_value=True
+  ):
+    response = test_app.post("/run_sse", json=payload)
+    assert response.status_code == 200
+
+    events = [
+        json.loads(line.removeprefix("data: "))
+        for line in response.text.splitlines()
+        if line.startswith("data: ")
+    ]
+
+    assert len(events) == 2
+    error_data = json.loads(events[1]["content"]["parts"][0]["text"])
+    assert error_data["error_type"] == "ValueError"
+    assert "stacktrace" in error_data
+    assert "ValueError: Simulated runner error" in error_data["stacktrace"]
 
 
 if __name__ == "__main__":
