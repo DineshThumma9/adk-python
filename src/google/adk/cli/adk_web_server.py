@@ -1556,10 +1556,14 @@ class AdkWebServer:
                 logger.debug(
                     "Generated event in agent run streaming: %s",
                     sse_event,
+                    extra={
+                        "session_id": req.session_id,
+                        "user_id": req.user_id,
+                    },
                 )
                 yield f"data: {sse_event}\n\n"
         except Exception as e:
-          logger.debug("Exception in agent run streaming: %s", e)
+          logger.debug(f"Exception in agent run streaming: {e}", exc_info=True)
 
           error_details = {
               "error_type": type(e).__name__,
