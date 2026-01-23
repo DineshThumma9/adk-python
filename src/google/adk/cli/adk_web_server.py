@@ -28,7 +28,6 @@ from typing import Callable
 from typing import List
 from typing import Literal
 from typing import Optional
-import uuid
 
 from fastapi import FastAPI
 from fastapi import HTTPException
