@@ -1557,6 +1557,9 @@ class AdkWebServer:
                     "Generated event in agent run streaming: %s", sse_event
                 )
                 yield f"data: {sse_event}\n\n"
+
+          # Send termination signal after all events have been streamed
+          yield "data: [DONE]\n\n"
         except Exception as e:
           logger.exception("Error in event_generator: %s", e)
           # Yield a proper Event object for the error
@@ -1570,6 +1573,7 @@ class AdkWebServer:
               "data:"
               f" {error_event.model_dump_json(by_alias=True, exclude_none=True)}\n\n"
           )
+          yield "data: [DONE]\n\n"
 
       # Returns a streaming response with the proper media type for SSE
       return StreamingResponse(

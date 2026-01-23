@@ -1005,7 +1005,7 @@ def test_agent_run_sse_splits_artifact_delta(
   sse_events = [
       json.loads(line.removeprefix("data: "))
       for line in response.text.splitlines()
-      if line.startswith("data: ")
+      if line.startswith("data: ") and line != "data: [DONE]"
   ]
 
   assert len(sse_events) == 2
