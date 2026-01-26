@@ -76,6 +76,32 @@ class TestMCPToolset:
     assert toolset._auth_scheme is None
     assert toolset._auth_credential is None
 
+  def test_connection_params(self):
+    """Test getting connection params."""
+    toolset = MCPToolset(connection_params=self.mock_stdio_params)
+    assert toolset.connection_params == self.mock_stdio_params
+
+  def test_auth_scheme(self):
+    """Test getting auth scheme."""
+    toolset = MCPToolset(connection_params=self.mock_stdio_params)
+    assert toolset.auth_scheme is None
+
+  def test_auth_credential(self):
+    """Test getting auth credential."""
+    toolset = MCPToolset(connection_params=self.mock_stdio_params)
+    assert toolset.auth_credential is None
+
+  def test_error_log(self):
+    """Test getting error log."""
+    toolset = MCPToolset(connection_params=self.mock_stdio_params)
+    assert toolset.errlog == sys.stderr
+
+  def test_auth_credential_updates(self):
+    """Test setting auth credential."""
+    toolset = MCPToolset(connection_params=self.mock_stdio_params)
+    toolset._auth_credential = "test_auth_credential"
+    assert toolset.auth_credential == "test_auth_credential"
+
   def test_init_with_stdio_connection_params(self):
     """Test initialization with StdioConnectionParams."""
     stdio_params = StdioConnectionParams(
