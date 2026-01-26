@@ -96,11 +96,14 @@ class TestMCPToolset:
     toolset = MCPToolset(connection_params=self.mock_stdio_params)
     assert toolset.errlog == sys.stderr
 
-  def test_auth_credential_updates(self):
-    """Test setting auth credential."""
-    toolset = MCPToolset(connection_params=self.mock_stdio_params)
-    toolset._auth_credential = "test_auth_credential"
-    assert toolset.auth_credential == "test_auth_credential"
+  def test_auth_credential_with_value(self):
+    """Test getting auth credential when provided at initialization."""
+    mock_credential = Mock(spec=AuthCredential)
+    toolset = MCPToolset(
+        connection_params=self.mock_stdio_params,
+        auth_credential=mock_credential,
+    )
+    assert toolset.auth_credential == mock_credential
 
   def test_init_with_stdio_connection_params(self):
     """Test initialization with StdioConnectionParams."""
