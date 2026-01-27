@@ -483,7 +483,7 @@ def _serialize_content_with_elision(
 
 def _instrumented_with_opentelemetry_instrumentation_google_genai() -> bool:
   maybe_wrapped_function = Models.generate_content
-  while wrapped := getattr(maybe_wrapped_function, '__wrapped__', None):
+  while wrapped := getattr(maybe_wrapped_function, "__wrapped__", None):
     if (
         "opentelemetry/instrumentation/google_genai"
         in maybe_wrapped_function.__code__.co_filename
