@@ -179,8 +179,7 @@ class McpToolset(BaseToolset):
   @property
   def errlog(self) -> TextIO:
     return self._errlog
-  
-  
+
   async def _execute_with_session(
       self,
       coroutine_func: Callable[[Any], Awaitable[T]],
