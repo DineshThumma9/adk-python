@@ -100,6 +100,32 @@ class TestMCPToolset:
     toolset = MCPToolset(connection_params=self.mock_stdio_params)
     assert toolset.errlog == sys.stderr
 
+  def test_auth_scheme_with_value(self):
+    """Test getting auth scheme when provided at initialization."""
+    mock_scheme = Mock()
+    toolset = MCPToolset(
+        connection_params=self.mock_stdio_params,
+        auth_scheme=mock_scheme,
+    )
+    assert toolset.auth_scheme == mock_scheme
+
+  def test_require_confirmation(self):
+    """Test getting require_confirmation flag."""
+    toolset = MCPToolset(
+        connection_params=self.mock_stdio_params,
+        require_confirmation=True,
+    )
+    assert toolset.require_confirmation is True
+
+  def test_header_provider(self):
+    """Test getting header_provider."""
+    mock_header_provider = Mock()
+    toolset = MCPToolset(
+        connection_params=self.mock_stdio_params,
+        header_provider=mock_header_provider,
+    )
+    assert toolset.header_provider == mock_header_provider
+
   def test_auth_credential_with_value(self):
     """Test getting auth credential when provided at initialization."""
     mock_credential = Mock(spec=AuthCredential)
